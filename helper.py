@@ -2,12 +2,15 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from pprint import pprint
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
 import itertools
 
+def daterange(start_date, end_date):
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + timedelta(n)
 
 def getSoup(link):
     req = requests.get(link)
@@ -30,9 +33,12 @@ def append_rows(self, values, value_input_option='RAW'):
 def get_page_details(link):
     products = []
     soup = getSoup(link)
-    table_body = soup.find(
-        "table", {"class": "views-table sticky-enabled cols-15"}).find("tbody")
-    table_body = table_body.findAll("tr")
+    try:
+        table_body = soup.find(
+            "table", {"class": "views-table sticky-enabled cols-15"}).find("tbody")
+        table_body = table_body.findAll("tr")
+    except:
+        return
     for product in table_body:
         detail = {}
         detail["date_data"] = ['','']
@@ -60,12 +66,25 @@ def get_page_details(link):
 def add_products_json(products):
     with open("products.json", "r") as f:
         products_json = json.load(f)
+    if not products == None:
+        for product in products:
+            if product['name'] not in products_json.keys():
+                products_json[product['name']] = {}
+            products_json[product['name']][product["date_data"][0]] = product["date_data"][1]
 
-    for product in products:
-        if product['name'] not in products_json.keys():
-            products_json[product['name']] = {}
-        products_json[product['name']][product["date_data"][0]] = product["date_data"][1]
     with open("products.json", "w") as f:
         json.dump(products_json ,f)
 
-add_products_json(get_page_details("https://www.caat.it/it/listino/2020-04-01"))
+def get_all_details():
+    start_date = date(2020, 1, 1)
+    end_date = date(2020, 5, 26)
+    for single_date in daterange(start_date, end_date):
+        page_date = single_date.strftime("%Y-%m-%d")
+        print(page_date)
+        link = "https://www.caat.it/it/listino/" + page_date
+        products = get_page_details(link)
+        add_products_json(products)
+
+# add_products_json(get_page_details("https://www.caat.it/it/listino/2020-04-01"))
+# print(requests.get("https://www.caat.it/it/listino/2015-01-01").status_code)
+
