@@ -80,11 +80,56 @@ def get_all_details():
     end_date = date(2020, 5, 26)
     for single_date in daterange(start_date, end_date):
         page_date = single_date.strftime("%Y-%m-%d")
-        print(page_date)
+        # print(page_date)
         link = "https://www.caat.it/it/listino/" + page_date
         products = get_page_details(link)
         add_products_json(products)
 
-# add_products_json(get_page_details("https://www.caat.it/it/listino/2020-04-01"))
-# print(requests.get("https://www.caat.it/it/listino/2015-01-01").status_code)
+def get_dates():
+    dates = []
+    with open("products.json", "r") as f:
+        products_json = json.load(f)
+    for key, value in products_json.items():
+        for d in value.keys():
+            if d not in dates:
+                dates.append(d)
+    dates.sort()
+    # print(dates)
+    return dates
 
+
+def make_matrix():
+    ret_matrix = []
+    with open("products.json", "r") as f:
+        products_json = json.load(f)
+    dates = get_dates()
+    heading = ["Gruppo","Specie","Varieta","Calibro","Cat.","Presentazione","Marchio","Origine","Confezione","Unita","misura","Altre"]
+    heading.extend(dates)
+    ret_matrix.append(heading)
+    for key, value in products_json.items():
+        row = []
+        row.extend(key.split(":"))
+        dates_row = [""] * len(dates)
+        for date_key, pre_value in value.items():
+            index = dates.index(date_key)
+            dates_row[index] = pre_value
+        row.extend(dates_row)
+        ret_matrix.append(row)
+    return ret_matrix
+
+def gsheet_load(array):
+    scope = [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.file'
+    ]
+    file_name = 'client_key.json'
+    creds = ServiceAccountCredentials.from_json_keyfile_name(file_name,scope)
+    client = gspread.authorize(creds)
+    sheet = client.open('CAAT.IT').sheet1
+    sheet.clear()
+    append_rows(sheet,array)
+    print("MODIFIED")
+
+def driver():
+    matrix = make_matrix()
+    gsheet_load(matrix)
