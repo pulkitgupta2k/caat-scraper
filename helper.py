@@ -103,7 +103,7 @@ def make_matrix():
     with open("products.json", "r") as f:
         products_json = json.load(f)
     dates = get_dates()
-    heading = ["Gruppo","Specie","Varieta","Calibro","Cat.","Presentazione","Marchio","Origine","Confezione","Unita","misura","Altre"]
+    heading = ["Gruppo","Specie","Varieta","Calibro","Cat.","Presentazione","Marchio","Origine","Confezione","Unita Misura","Altre"]
     heading.extend(dates)
     ret_matrix.append(heading)
     for key, value in products_json.items():
