@@ -131,5 +131,6 @@ def gsheet_load(array):
     print("MODIFIED")
 
 def driver():
+    get_all_details()
     matrix = make_matrix()
     gsheet_load(matrix)
