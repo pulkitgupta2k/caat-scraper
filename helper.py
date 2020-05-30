@@ -77,7 +77,7 @@ def add_products_json(products):
 
 def get_all_details():
     start_date = date(2020, 1, 1)
-    end_date = date(2020, 5, 26)
+    end_date = date.today()
     for single_date in daterange(start_date, end_date):
         page_date = single_date.strftime("%Y-%m-%d")
         # print(page_date)
